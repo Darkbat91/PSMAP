@@ -5,12 +5,13 @@ param(
     ValueFromPipeline=$true)]
 [object[]]$data,
 [ValidateScript({Test-Path $_ -PathType Container})] 
-$path = $env:temp,
+$Path = $env:temp,
 $Height=800,
 $Width= 800,
 [switch]$group,
 [string]$filename ='Data.html',
-[switch]$quiet)
+[switch]$quiet,
+[switch]$circleicon)
 BEGIN
 {
     $Markers = "var markers = [`n"
@@ -68,6 +69,11 @@ function initialize() {
     marker = new google.maps.Marker({
       position: loc,
 "@
+if($circleicon.ispresent)
+    {
+    $html += "icon: getCircle(),"
+    }
+
 if($group.isPresent)
     {
     $html += @"
@@ -103,6 +109,17 @@ $html += @"
     map.setCenter(new google.maps.LatLng(markers[0][1],markers[0][2]));
     map.setZoom(4);
   }
+}
+
+function getCircle() {
+  return {
+    path: google.maps.SymbolPath.CIRCLE,
+    fillColor: 'red',
+    fillOpacity: 1,
+    scale: 4,
+    strokeColor: 'white',
+    strokeWeight: .5
+  };
 }
 
 
