@@ -1,40 +1,36 @@
-﻿function Out-MappedData
-{
-param(
-    [parameter(Mandatory=$true,
-    ValueFromPipeline=$true)]
-[object[]]$data,
-[ValidateScript({Test-Path $_ -PathType Container})] 
-$Path = $env:temp,
-$Height=800,
-$Width= 800,
-[switch]$group,
-[string]$filename ='Data.html',
-[switch]$quiet,
-[switch]$circleicon)
-BEGIN
-{
-    $Markers = "var markers = [`n"
-    $count = 0
-}
-
-PROCESS
-{
-    ForEach ($Item in $data)
-    {   $Name =$item.Name.Replace("`'","\'")
-        $Markers += "    ['$Name',$($item.Latitude),$($Item.Longitude)]"
-        $Markers += ",`n"
-        $count++
-    
+﻿function Out-MappedData {
+    param(
+        [parameter(Mandatory = $true,
+            ValueFromPipeline = $true)]
+        [object[]]$data,
+        [ValidateScript( {Test-Path $_ -PathType Container})] 
+        $Path = $env:temp,
+        $Height = 800,
+        $Width = 800,
+        [switch]$group,
+        [string]$filename = 'Data.html',
+        [switch]$quiet,
+        [switch]$circleicon)
+    BEGIN {
+        $Markers = "var markers = [`n"
+        $count = 0
     }
-}
-END
-{
-$markers = $markers.TrimEnd(",`n")
-$Markers += "`n  ];`n"
+
+    PROCESS {
+        ForEach ($Item in $data) {
+            $Name = $item.Name.Replace("`'", "\'")
+            $Markers += "    ['$Name',$($item.Latitude),$($Item.Longitude)]"
+            $Markers += ",`n"
+            $count++
+    
+        }
+    }
+    END {
+        $markers = $markers.TrimEnd(",`n")
+        $Markers += "`n  ];`n"
 
 
-$HTML = @"
+        $HTML = @"
 <!DOCTYPE html>
 <html>
   <head>
@@ -69,14 +65,12 @@ function initialize() {
     marker = new google.maps.Marker({
       position: loc,
 "@
-if($circleicon.ispresent)
-    {
-    $html += "icon: getCircle(),"
-    }
+        if ($circleicon.ispresent) {
+            $html += "icon: getCircle(),"
+        }
 
-if($group.isPresent)
-    {
-    $html += @"
+        if ($group.isPresent) {
+            $html += @"
       title: markers[i][0]
     });
       datapoints.push(marker);
@@ -86,10 +80,9 @@ if($group.isPresent)
  var markerCluster = new MarkerClusterer(map, datapoints,
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 "@
-    }
-else
-    {
-    $html += @"
+        }
+        else {
+            $html += @"
     map: map,
     title: markers[i][0]
     });
@@ -97,8 +90,8 @@ else
     bounds.extend(loc);
     }
 "@
-    }
-$html += @"
+        }
+        $html += @"
     
 
  
@@ -134,20 +127,19 @@ google.maps.event.addDomListener(window, 'load', initialize);
 </html>
 "@
 
-Try {
-    $HTML | Out-File "$Path\$filename" -Encoding ASCII -ErrorAction Stop
-}
-Catch {
-    Write-Warning "Unable to save HTML at $Path\$filename because $_"
-    Exit
-}
+        Try {
+            $HTML | Out-File "$Path\$filename" -Encoding ASCII -ErrorAction Stop
+        }
+        Catch {
+            Write-Warning "Unable to save HTML at $Path\$filename because $_"
+            Exit
+        }
 
-if($quiet.ispresent -eq $false)
-    {
-    $output = "$Path\$filename"
-    & $output
+        if ($quiet.ispresent -eq $false) {
+            $output = "$Path\$filename"
+            & $output
+        }
     }
-}
 
 }
 
